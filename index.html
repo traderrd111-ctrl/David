@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MotorHub — Motores de autos y motos</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#inicio" class="logo">Motor<span>Hub</span></a>
+      <nav class="nav">
+        <a href="#inicio">Inicio</a>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="inicio" class="hero">
+      <div class="container hero-inner">
+        <h1>Potencia, precisión y rendimiento</h1>
+        <p>Encontrá el motor ideal para tu auto o moto. Motores nuevos y reacondicionados, con garantía y asesoramiento técnico.</p>
+        <a href="#catalogo" class="btn btn-primary">Ver catálogo</a>
+      </div>
+    </section>
+
+    <section id="catalogo" class="catalog">
+      <div class="container">
+        <h2>Catálogo de motores</h2>
+        <p class="section-subtitle">Una selección de nuestros motores más solicitados</p>
+
+        <div class="filters">
+          <button class="filter-btn active" data-filter="todos">Todos</button>
+          <button class="filter-btn" data-filter="auto">Autos</button>
+          <button class="filter-btn" data-filter="moto">Motos</button>
+        </div>
+
+        <div class="grid" id="product-grid">
+          <!-- Las tarjetas se generan dinámicamente desde script.js -->
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="contact">
+      <div class="container contact-inner">
+        <div>
+          <h2>Contactanos</h2>
+          <p>¿Tenés dudas sobre algún motor o necesitás asesoramiento? Dejanos tu consulta y te respondemos a la brevedad.</p>
+        </div>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="form-group">
+            <label for="name">Nombre</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="message">Mensaje</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar consulta</button>
+          <p id="form-feedback" class="form-feedback" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> MotorHub. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
