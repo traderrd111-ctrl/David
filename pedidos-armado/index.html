@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- artifact:head:start -->
+<title>Pedidos de Armado</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- artifact:head:end -->
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- artifact:body:start -->
+<header class="appbar">
+  <div class="appbar-inner">
+    <a class="brand" href="#pedido">
+      <span class="brand-mark" aria-hidden="true">PA</span>
+      <span class="brand-text">
+        <span class="brand-title">Pedidos de Armado</span>
+        <span class="brand-sub">Motocicletas Yamaha · control mensual</span>
+      </span>
+    </a>
+    <div class="monthnav" id="monthnav">
+      <button type="button" class="icon-btn" data-action="mes-prev" aria-label="Mes anterior">&#8249;</button>
+      <select id="mes-m" aria-label="Mes"></select>
+      <select id="mes-y" aria-label="Año"></select>
+      <button type="button" class="icon-btn" data-action="mes-next" aria-label="Mes siguiente">&#8250;</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Secciones">
+    <div class="tabs-inner">
+      <a class="tab" href="#pedido" data-tab="pedido">Pedido del mes</a>
+      <a class="tab" href="#recepcion" data-tab="recepcion">Recepción</a>
+      <a class="tab" href="#cumplimiento" data-tab="cumplimiento">Cumplimiento</a>
+      <a class="tab" href="#reclamaciones" data-tab="reclamaciones">Reclamaciones <span class="count" id="count-recl" hidden></span></a>
+      <a class="tab" href="#catalogo" data-tab="catalogo">Catálogo</a>
+      <a class="tab" href="#ajustes" data-tab="ajustes">Ajustes</a>
+    </div>
+  </nav>
+</header>
+<div class="wrap banner-slot" id="banner"></div>
+<main class="wrap main" id="view">
+  <section class="panel loading"><p><strong>Cargando pedidos, recepciones y reclamaciones…</strong></p></section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<!-- artifact:body:end -->
+<script src="catalogo.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
