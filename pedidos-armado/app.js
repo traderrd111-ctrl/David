@@ -56,6 +56,9 @@
   const fmtDias = (d) => (d == null ? '—' : (Math.round(d * 10) / 10).toLocaleString('es-DO', { maximumFractionDigits: 1 }));
   const diasEntre = (a, b) => Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 86400000);
   const numeroPedido = (mes) => 'PA-' + mes;
+  function formModeloVacio(categoria) {
+    return { abierto: false, nombre: '', categoria: categoria || '', categoriaOtra: '', colores: [], otroColor: '', error: '' };
+  }
 
   const MUESTRAS = {
     negro: '#1d1f24', azul: '#1f4fd1', rojo: '#c8262d', marron: '#6b4632', gris: '#8b929c', blanco: '#f4f5f7', blanca: '#f4f5f7',
@@ -86,7 +89,9 @@
     reclError: '',
     reclUltima: '',
     reclFiltro: 'todas',
-    cat: { q: '', nombre: '', categoria: '', categoriaOtra: '', colores: '', editId: '', editColor: '', error: '' },
+    cat: { q: '', editId: '', editColor: '', error: '' },
+    nm: formModeloVacio(''),
+    enfocar: '',
     cfg: null,
     importData: null,
     confirm: '',
@@ -388,6 +393,11 @@
     }
     const copia = $('#copy-text');
     if (copia && ui.copia && ui.copia.seleccionar) { copia.focus(); copia.select(); ui.copia.seleccionar = false; }
+    if (ui.enfocar) {
+      const el = document.getElementById(ui.enfocar);
+      ui.enfocar = '';
+      if (el) { try { el.focus(); } catch (e) { /* sin foco */ } }
+    }
   }
 
   function renderCabecera() {
@@ -515,9 +525,13 @@
       return '<section class="panel"><h2>Agregar motocicletas</h2><div class="empty"><p><strong>El catálogo de modelos está vacío.</strong></p><p class="muted">Carga los modelos Yamaha para empezar a armar el pedido.</p>' +
         '<button type="button" class="btn primary" data-action="cargar-catalogo">Cargar catálogo Yamaha (' + BASE.modelos.length + ' modelos)</button></div></section>';
     }
+    if (ui.nm.abierto) {
+      return '<section class="panel"><div class="panel-head"><div><h2>Modelo nuevo</h2><p class="muted small">Escribe el nombre y marca los colores disponibles. Al crearlo queda elegido para que escribas las cantidades del pedido.</p></div></div>' + formNuevoModelo('pedido') + '</section>';
+    }
     const q = sinAcentos(ui.picker.q).toLowerCase().replace(/[\s-]/g, '');
     let lista = q ? activos.filter((m) => sinAcentos(m.nombre).toLowerCase().replace(/[\s-]/g, '').includes(q) || sinAcentos(m.categoria).toLowerCase().includes(q)) : activos;
     if (q && lista.length === 1 && ui.picker.modeloId !== lista[0].id) { ui.picker.modeloId = lista[0].id; ui.picker.qty = {}; }
+    const sinResultados = !!q && !lista.length;
     const sel = ui.picker.modeloId && state.modelos[ui.picker.modeloId] ? Object.assign({ id: ui.picker.modeloId }, state.modelos[ui.picker.modeloId]) : null;
     if (sel && !lista.some((m) => m.id === sel.id)) lista = [sel].concat(lista);
     const enPedido = new Map();
@@ -534,7 +548,9 @@
 
     let h = '<section class="panel"><div class="panel-head"><div><h2>Agregar motocicletas</h2><p class="muted small">Elige el modelo y escribe cuántas unidades necesitas de cada color.</p></div></div>' +
       '<div class="field"><label for="pk-q">Buscar modelo</label><input type="search" id="pk-q" data-bind="picker.q" data-rerender="1" autocomplete="off" placeholder="Ej. XTZ150, Crux, Raptor" value="' + esc(ui.picker.q) + '"></div>' +
-      '<div class="field"><label for="pk-modelo">Modelo</label><select id="pk-modelo">' + opts + '</select></div>';
+      '<div class="field"><label for="pk-modelo">Modelo</label><select id="pk-modelo">' + opts + '</select></div>' +
+      (sinResultados ? '<p class="note">No encontramos «' + esc(ui.picker.q.trim()) + '» en el catálogo. <button type="button" class="linklike" data-action="nm-abrir" data-nombre="' + esc(ui.picker.q.trim()) + '">Agregarlo como modelo nuevo</button></p>' : '') +
+      '<button type="button" class="btn sm add-model-btn" data-action="nm-abrir">+ Agregar un modelo que no está en la lista</button>';
     if (sel) {
       const actual = new Map();
       for (const l of lineasDe(p)) if (l.modeloId === sel.id) actual.set(normColor(l.color), entero(l.cantidad));
@@ -552,9 +568,9 @@
       }
       h += '<div class="add-inline"><input type="text" id="pk-newcolor" data-bind="picker.nuevoColor" placeholder="Otro color (ej. Gris mate)" value="' + esc(ui.picker.nuevoColor) + '" aria-label="Nuevo color para ' + esc(sel.nombre) + '"><button type="button" class="btn sm" data-action="pk-addcolor">Agregar color</button></div>' +
         '<button type="button" class="btn primary block" data-action="pk-guardar">Guardar cantidades en el pedido</button>' +
-        '<p class="hint">Escribe 0 para quitar un color del pedido. ¿No está el modelo? Agrégalo en <button type="button" class="linklike" data-action="ir-tab" data-tab="catalogo">Catálogo</button>.</p>';
+        '<p class="hint">Escribe 0 para quitar un color del pedido.</p>';
     } else {
-      h += '<p class="hint">Al elegir un modelo aparecen sus colores para que escribas las cantidades. ¿No está el modelo? Agrégalo en <button type="button" class="linklike" data-action="ir-tab" data-tab="catalogo">Catálogo</button>.</p>';
+      h += '<p class="hint">Al elegir un modelo aparecen sus colores para que escribas las cantidades.</p>';
     }
     return h + '</section>';
   }
@@ -939,6 +955,49 @@
     return 'RC-' + anio + '-' + String(max + 1).padStart(4, '0');
   }
 
+  /* ================= modelo nuevo (pedido y catálogo) ================= */
+  function coloresDisponibles() {
+    const vistos = new Map();
+    for (const m of Object.values(state.modelos)) {
+      for (const c of (m && m.colores) || []) {
+        const k = normColor(c);
+        const v = vistos.get(k);
+        if (v) v.n++; else vistos.set(k, { nombre: c, n: 1 });
+      }
+    }
+    for (const c of ui.nm.colores) { const k = normColor(c); if (!vistos.has(k)) vistos.set(k, { nombre: c, n: 0 }); }
+    return [...vistos.values()].sort((a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre, 'es')).map((v) => v.nombre);
+  }
+  function formNuevoModelo(contexto) {
+    const f = ui.nm;
+    const cats = categorias();
+    const catSel = f.categoria || cats[0];
+    const elegidos = new Set(f.colores.map(normColor));
+    const chips = coloresDisponibles().map((c) => '<button type="button" class="color-pick" data-action="nm-color" data-color="' + esc(c) + '" aria-pressed="' + elegidos.has(normColor(c)) + '">' + swatch(c) + esc(c) + '</button>').join('');
+    return '<div class="nm-form">' +
+      '<div class="form-grid">' +
+      '<div class="field"><label for="nm-nombre">Nombre del modelo <span class="req">*</span></label><input type="text" id="nm-nombre" class="upper" data-bind="nm.nombre" autocomplete="off" value="' + esc(f.nombre) + '" placeholder="Ej. XTZ250 LANDER"></div>' +
+      '<div class="field"><label for="nm-categoria">Categoría</label><select id="nm-categoria" data-bind="nm.categoria" data-rerender="1">' +
+      cats.map((c) => '<option value="' + esc(c) + '"' + (c === catSel ? ' selected' : '') + '>' + esc(c) + '</option>').join('') +
+      '<option value="__otra"' + (f.categoria === '__otra' ? ' selected' : '') + '>Otra categoría…</option></select></div>' +
+      (f.categoria === '__otra' ? '<div class="field"><label for="nm-categoria-otra">Nombre de la categoría</label><input type="text" id="nm-categoria-otra" data-bind="nm.categoriaOtra" value="' + esc(f.categoriaOtra) + '"></div>' : '') +
+      '</div>' +
+      '<fieldset class="color-fieldset"><legend class="label">Colores disponibles <span class="req">*</span> <span class="muted">· ' + (f.colores.length ? f.colores.length + (f.colores.length === 1 ? ' elegido: ' : ' elegidos: ') + esc(f.colores.join(', ')) : 'toca para marcar') + '</span></legend>' +
+      '<div class="color-picks">' + chips + '</div>' +
+      '<div class="add-inline"><input type="text" id="nm-otro" data-bind="nm.otroColor" value="' + esc(f.otroColor) + '" placeholder="Otro color que no está (ej. Gris mate)" aria-label="Otro color"><button type="button" class="btn sm" data-action="nm-otro">Agregar color</button></div>' +
+      '</fieldset>' +
+      (f.error ? '<p class="note bad" role="alert">' + esc(f.error) + '</p>' : '') +
+      '<div class="actions"><button type="button" class="btn primary" data-action="nm-crear" data-ctx="' + contexto + '">' + (contexto === 'pedido' ? 'Crear modelo y escribir cantidades' : 'Agregar modelo') + '</button>' +
+      (contexto === 'pedido' ? '<button type="button" class="btn ghost" data-action="nm-cerrar">Cancelar</button>' : '') + '</div>' +
+      '</div>';
+  }
+  function agregarColoresNm(texto) {
+    for (const x of String(texto || '').split(/[,;\n]/)) {
+      const v = capitalizar(x);
+      if (v && !ui.nm.colores.some((y) => normColor(y) === normColor(v))) ui.nm.colores.push(v);
+    }
+  }
+
   /* ================= vista: catálogo ================= */
   function vistaCatalogo() {
     const editable = !ui.readOnly;
@@ -946,15 +1005,7 @@
     const todos = modelosOrdenados();
     let h = '';
     if (editable) {
-      h += '<section class="panel"><div class="panel-head"><div><h2>Agregar un modelo nuevo</h2><p class="muted small">Para motocicletas que todavía no están en la lista. Los colores van separados por coma.</p></div></div>' +
-        '<div class="form-grid"><div class="field"><label for="cat-nombre">Nombre del modelo <span class="req">*</span></label><input type="text" id="cat-nombre" class="upper" data-bind="cat.nombre" value="' + esc(ui.cat.nombre) + '" placeholder="Ej. XTZ250 Lander"></div>' +
-        '<div class="field"><label for="cat-categoria">Categoría</label><select id="cat-categoria" data-bind="cat.categoria" data-rerender="1">' +
-        cats.map((c) => '<option value="' + esc(c) + '"' + (c === (ui.cat.categoria || cats[0]) ? ' selected' : '') + '>' + esc(c) + '</option>').join('') +
-        '<option value="__otra"' + (ui.cat.categoria === '__otra' ? ' selected' : '') + '>Otra categoría…</option></select></div>' +
-        (ui.cat.categoria === '__otra' ? '<div class="field"><label for="cat-categoria-otra">Nombre de la categoría</label><input type="text" id="cat-categoria-otra" data-bind="cat.categoriaOtra" value="' + esc(ui.cat.categoriaOtra) + '"></div>' : '') +
-        '<div class="field"><label for="cat-colores">Colores <span class="req">*</span></label><input type="text" id="cat-colores" data-bind="cat.colores" value="' + esc(ui.cat.colores) + '" placeholder="Azul, Negro, Blanco"></div></div>' +
-        (ui.cat.error ? '<p class="note bad" role="alert">' + esc(ui.cat.error) + '</p>' : '') +
-        '<div class="actions"><button type="button" class="btn primary" data-action="cat-agregar">Agregar modelo</button></div></section>';
+      h += '<section class="panel"><div class="panel-head"><div><h2>Agregar un modelo nuevo</h2><p class="muted small">Para motocicletas que todavía no están en la lista. Marca los colores disponibles o escribe uno nuevo.</p></div></div>' + formNuevoModelo('catalogo') + '</section>';
     }
     const q = sinAcentos(ui.cat.q).toLowerCase().replace(/[\s-]/g, '');
     const lista = q ? todos.filter((m) => sinAcentos(m.nombre).toLowerCase().replace(/[\s-]/g, '').includes(q) || (m.colores || []).some((c) => normColor(c).includes(q))) : todos;
@@ -1175,25 +1226,46 @@
       navigator.clipboard.writeText(texto).then(() => toast(ok || 'Copiado', 'ok'), fallback);
     } catch (e) { fallback(); }
   }
-  function agregarModelo() {
-    const c = ui.cat;
-    const nombre = c.nombre.trim().replace(/\s+/g, ' ').toUpperCase();
-    const categoria = c.categoria === '__otra' ? capitalizar(c.categoriaOtra) : (c.categoria || categorias()[0] || 'Sin categoría');
-    const colores = [];
-    for (const x of c.colores.split(/[,;\n]/)) { const v = capitalizar(x); if (v && !colores.some((y) => normColor(y) === normColor(v))) colores.push(v); }
+  function crearModelo(contexto) {
+    const f = ui.nm;
+    agregarColoresNm(f.otroColor);
+    f.otroColor = '';
+    const nombre = f.nombre.trim().replace(/\s+/g, ' ').toUpperCase();
+    const categoria = f.categoria === '__otra' ? capitalizar(f.categoriaOtra) : (f.categoria || categorias()[0] || 'Sin categoría');
+    const colores = f.colores.slice();
+    const existente = Object.entries(state.modelos).find(([, m]) => String(m.nombre).toUpperCase() === nombre);
     let error = '';
     if (!nombre) error = 'Escribe el nombre del modelo.';
-    else if (Object.values(state.modelos).some((m) => String(m.nombre).toUpperCase() === nombre)) error = 'Ya existe un modelo llamado ' + nombre + '.';
+    else if (existente && existente[1].activo !== false && contexto !== 'pedido') error = nombre + ' ya está en el catálogo.';
     else if (!categoria) error = 'Escribe el nombre de la nueva categoría.';
-    else if (!colores.length) error = 'Escribe al menos un color.';
-    c.error = error;
-    if (error) { scheduleRender(); return; }
-    let id = slug(nombre); let i = 2;
-    while (state.modelos[id]) id = slug(nombre) + '-' + i++;
-    put('modelos', id, { nombre, categoria, colores, activo: true, creado: new Date().toISOString() });
-    ui.cat.nombre = ''; ui.cat.colores = ''; ui.cat.categoriaOtra = ''; ui.cat.categoria = categoria;
-    ui.picker.modeloId = id; ui.picker.qty = {}; ui.picker.q = '';
-    toast(nombre + ' agregado al catálogo. Ya puedes pedirlo.', 'ok');
+    else if (!existente && !colores.length) error = 'Marca al menos un color disponible o escribe uno nuevo.';
+    f.error = error;
+    if (error) { ui.enfocar = !nombre ? 'nm-nombre' : ''; scheduleRender(); return; }
+    let id;
+    if (existente) {
+      id = existente[0];
+      const m = clone(existente[1]);
+      const nuevos = colores.filter((c) => !(m.colores || []).some((y) => normColor(y) === normColor(c)));
+      const estabaOculto = m.activo === false;
+      if (estabaOculto || nuevos.length) {
+        m.activo = true;
+        m.colores = (m.colores || []).concat(nuevos);
+        put('modelos', id, m);
+      }
+      toast(nombre + (estabaOculto ? ' estaba oculto y ya está disponible otra vez.' : ' ya estaba en el catálogo; quedó elegido.') + (nuevos.length ? ' Se agregaron ' + nuevos.length + ' colores.' : ''), 'ok');
+    } else {
+      id = slug(nombre);
+      let i = 2;
+      while (state.modelos[id]) id = slug(nombre) + '-' + i++;
+      put('modelos', id, { nombre, categoria, colores, activo: true, creado: new Date().toISOString() });
+      toast(contexto === 'pedido' ? nombre + ' creado. Escribe las cantidades por color y guárdalas.' : nombre + ' agregado al catálogo. Ya puedes pedirlo en «Pedido del mes».', 'ok');
+    }
+    ui.nm = formModeloVacio(f.categoria);
+    ui.picker.modeloId = id;
+    ui.picker.qty = {};
+    ui.picker.q = '';
+    if (contexto === 'pedido') ui.enfocar = 'pk-qty-0';
+    scheduleRender();
   }
   function guardarAjustes() {
     const d = ui.cfg || {};
@@ -1597,7 +1669,30 @@
     'recl-del-ok': (el) => { ui.confirm = ''; put('reclamaciones', el.dataset.id, BORRAR); toast('Reclamación eliminada'); },
     'copiar-destino': () => copiar(correoReclamos(), 'Dirección copiada'),
     'copia-cerrar': () => { ui.copia = null; scheduleRender(); },
-    'cat-agregar': () => agregarModelo(),
+    'nm-abrir': (el) => {
+      ui.nm.abierto = true;
+      ui.nm.error = '';
+      if (el.dataset.nombre) ui.nm.nombre = el.dataset.nombre.toUpperCase();
+      ui.enfocar = el.dataset.nombre ? 'nm-otro' : 'nm-nombre';
+      scheduleRender();
+    },
+    'nm-cerrar': () => { ui.nm = formModeloVacio(ui.nm.categoria); scheduleRender(); },
+    'nm-color': (el) => {
+      const c = el.dataset.color;
+      const i = ui.nm.colores.findIndex((y) => normColor(y) === normColor(c));
+      if (i >= 0) ui.nm.colores.splice(i, 1); else ui.nm.colores.push(c);
+      ui.nm.error = '';
+      scheduleRender();
+    },
+    'nm-otro': () => {
+      if (!ui.nm.otroColor.trim()) { ui.enfocar = 'nm-otro'; scheduleRender(); return; }
+      agregarColoresNm(ui.nm.otroColor);
+      ui.nm.otroColor = '';
+      ui.nm.error = '';
+      ui.enfocar = 'nm-otro';
+      scheduleRender();
+    },
+    'nm-crear': (el) => crearModelo(el.dataset.ctx),
     'cat-editar': (el) => { ui.cat.editId = el.dataset.id; ui.cat.editColor = ''; ui.cat.error = ''; ui.confirm = ''; scheduleRender(); },
     'cat-listo': () => { ui.cat.editId = ''; ui.cat.error = ''; ui.confirm = ''; scheduleRender(); },
     'cat-color-add': (el) => { if (agregarColorModelo(el.dataset.id, ui.cat.editColor)) ui.cat.editColor = ''; },
@@ -1672,7 +1767,9 @@
       if (el.id === 'mes-m' || el.id === 'mes-y') { cambiarMes($('#mes-y').value + '-' + $('#mes-m').value); return; }
       if (el.id === 'pk-modelo') { ui.picker.modeloId = el.value; ui.picker.qty = {}; ui.picker.nuevoColor = ''; scheduleRender(); return; }
       if (el.dataset.bind) {
-        setRuta(ui, el.dataset.bind, el.value);
+        // Los campos de texto ya se guardan con «input»; al pulsar Enter el navegador
+        // dispara «change» después de la acción y devolvería el texto ya usado.
+        if (el.tagName === 'SELECT' || el.type === 'date') setRuta(ui, el.dataset.bind, el.value);
         if (el.id === 'recl-modelo') ui.recl.color = '';
         if (el.dataset.rerender) scheduleRender();
         return;
@@ -1713,6 +1810,8 @@
       if (e.key !== 'Enter') return;
       const el = e.target;
       if (el.id === 'pk-newcolor') { e.preventDefault(); acciones['pk-addcolor'](); }
+      else if (el.id === 'nm-otro') { e.preventDefault(); acciones['nm-otro'](); }
+      else if (el.id === 'nm-nombre') { e.preventDefault(); const o = document.getElementById('nm-otro'); if (o) o.focus(); }
       else if (el.id === 'cat-edit-color') { e.preventDefault(); const b = document.querySelector('[data-action="cat-color-add"]'); if (b) acciones['cat-color-add'](b); }
       else if (el.dataset && el.dataset.line) { e.preventDefault(); el.blur(); }
     });
