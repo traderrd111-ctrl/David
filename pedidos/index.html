@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pedidos de Motos y Cuatriciclos</title>
+  <meta name="claude:viewport-fit-sides" content="cover" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <header class="barra">
+    <div class="barra-interior">
+      <div class="marca">
+        <span class="marca-titulo">Orden de pedido</span>
+        <span class="marca-sub" id="marca-sub">Motocicletas y cuatriciclos</span>
+      </div>
+      <div class="barra-resumen" aria-live="polite">
+        <span class="barra-cifra"><strong id="barra-unidades">0</strong> unidades</span>
+        <span class="barra-cifra"><strong id="barra-renglones">0</strong> renglones</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="espacio">
+    <main class="catalogo">
+      <section class="filtros" aria-label="Buscar y filtrar modelos">
+        <div class="campo campo-busqueda">
+          <label for="buscar">Buscar</label>
+          <input type="search" id="buscar" placeholder="Modelo, código o color (ej.: MT-07, D1V200, gris)" autocomplete="off" />
+        </div>
+        <div class="filtros-fila">
+          <div class="segmentos" role="group" aria-label="Categoría">
+            <button type="button" class="segmento activo" data-categoria="">Todo</button>
+            <button type="button" class="segmento" data-categoria="Motocicletas">Motocicletas</button>
+            <button type="button" class="segmento" data-categoria="Cuatriciclos">Cuatriciclos</button>
+          </div>
+          <div class="campo">
+            <label for="filtro-anio">Año</label>
+            <select id="filtro-anio"><option value="">Todos</option></select>
+          </div>
+          <div class="campo">
+            <label for="filtro-mercado">Mercado</label>
+            <select id="filtro-mercado"><option value="">Todos</option></select>
+          </div>
+          <label class="casilla" for="solo-cantidad">
+            <input type="checkbox" id="solo-cantidad" />
+            Solo con cantidad
+          </label>
+        </div>
+        <div class="filtros-pie">
+          <p id="conteo" class="conteo"></p>
+          <div class="filtros-acciones">
+            <button type="button" class="boton-texto" id="expandir-todo">Expandir todo</button>
+            <button type="button" class="boton-texto" id="contraer-todo">Contraer todo</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="lista-familias" class="lista-familias"></div>
+
+      <div id="sin-resultados" class="sin-resultados" hidden>
+        <p>Ningún modelo coincide con la búsqueda y los filtros elegidos.</p>
+        <button type="button" class="boton" id="quitar-filtros">Quitar filtros</button>
+      </div>
+
+      <details class="notas">
+        <summary>Observaciones sobre la planilla original (<span id="cantidad-avisos">0</span>)</summary>
+        <p>Datos de la planilla que conviene revisar con el proveedor antes de confirmar el pedido. El número de línea corresponde a los archivos de <code>pedidos/fuentes/</code>.</p>
+        <ul id="lista-avisos"></ul>
+      </details>
+    </main>
+
+    <aside class="pedido" id="panel-pedido" aria-labelledby="titulo-pedido">
+      <div class="pedido-hoja">
+        <div class="pedido-cabecera">
+          <h2 id="titulo-pedido">Orden de pedido</h2>
+          <button type="button" class="boton-texto solo-movil" id="cerrar-pedido">Volver al catálogo</button>
+        </div>
+
+        <form id="datos-pedido" class="pedido-datos" autocomplete="off">
+          <div class="campo">
+            <label for="numero-pedido">N.º de pedido</label>
+            <input type="text" id="numero-pedido" name="numero" />
+          </div>
+          <div class="campo">
+            <label for="fecha-pedido">Fecha</label>
+            <input type="date" id="fecha-pedido" name="fecha" />
+          </div>
+          <div class="campo campo-ancho">
+            <label for="cliente">Cliente / concesionario</label>
+            <input type="text" id="cliente" name="cliente" placeholder="Nombre del cliente" />
+          </div>
+          <div class="campo campo-ancho">
+            <label for="solicitante">Solicitado por</label>
+            <input type="text" id="solicitante" name="solicitante" placeholder="Nombre y contacto" />
+          </div>
+          <div class="campo campo-ancho">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" name="observaciones" rows="2" placeholder="Condiciones, entrega, forma de pago…"></textarea>
+          </div>
+        </form>
+
+        <dl class="pedido-totales">
+          <div><dt>Unidades</dt><dd id="total-unidades">0</dd></div>
+          <div><dt>Renglones</dt><dd id="total-renglones">0</dd></div>
+          <div><dt>Modelos</dt><dd id="total-familias">0</dd></div>
+        </dl>
+
+        <p id="pedido-vacio" class="pedido-vacio">Todavía no hay cantidades cargadas. Abrí un modelo del catálogo y usá <strong>+</strong> o escribí la cantidad en cada color.</p>
+        <ol id="lineas-pedido" class="lineas-pedido"></ol>
+
+        <div class="pedido-acciones">
+          <button type="button" class="boton primario" id="descargar-pdf">Descargar PDF</button>
+          <button type="button" class="boton" id="descargar-excel">Descargar Excel</button>
+          <button type="button" class="boton-texto peligro" id="nuevo-pedido">Empezar un pedido nuevo</button>
+          <div id="confirmar-nuevo" class="confirmar" hidden>
+            <p>Se borran todas las cantidades y los datos del pedido.</p>
+            <div class="confirmar-botones">
+              <button type="button" class="boton peligro-lleno" id="confirmar-si">Borrar pedido</button>
+              <button type="button" class="boton" id="confirmar-no">Cancelar</button>
+            </div>
+          </div>
+          <p id="estado-descarga" class="estado-descarga" role="status"></p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="barra-movil">
+    <span><strong id="movil-unidades">0</strong> unidades · <span id="movil-renglones">0</span> renglones</span>
+    <button type="button" class="boton primario" id="abrir-pedido">Ver pedido</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="datos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Planilla de cuatriciclos, transcripta tal cual fue recibida (separador: |).
+# Columnas: MODEL|NAME|Suntop|Winch|YEAR|Color
+# Las filas sin modelo continúan la fila anterior: agregan un color o completan el nombre.
+YFM450FWB|KODIAK450|||27|DARK PURPLISH BLUE SOLID N
+|||||DARK GRAYISH LEAF GREEN SL 5
+YFM450FWBD|KODIAK450 EPS STD||||DARK GRAYISH LEAF GREEN SL 5
+YFM450FWBD HUNT|KODIAK450 EPS CAMO||||DARK GRAYISH YELLOW SOLID 1
+YFM450FWBD SE|KODIAK450||✔||DARK GRAYISH YELLOW SOLID 1
+|EPS XT-R||||
+YFZ450R|YFZ450R|||27|Deep Purplish Blue Solid E
+YFZ450R SE|YFZ450R SE||||Light Leaf Green Solid 8
+YFM700FWAD|GRIZZLY700 FI EPS|||27|CYAN SOLID A
+YFM700FWAD HUNT|GRIZZLY700 FI EPS Hunting||||Camo
+YFM700FWAD (XT-R)|GRIZZLY700 EPS XT-R||✔||MAT GRAYISH YELLOW METALLIC 2
+YFM700|RAPTOR700R|||27|Dark Bluish Gray Metallic 7
+YFM700R|RAPTOR700R||||Deep Purplish Blue Solid E
+YFM700R SE|RAPTOR700R SE||||Light Leaf Green Solid 8
+|||||BLACK METALLIC J
+YFM700|RAPTOR700R|||28|Dark Bluish Gray Metallic 7
+YFM700R|RAPTOR700R||||Deep Purplish Blue Solid E
+YFM700R SE|RAPTOR700R SE||||Light Leaf Green Solid 8
+|||||BLACK METALLIC J
