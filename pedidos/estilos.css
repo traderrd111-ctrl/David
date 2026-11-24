@@ -14,6 +14,10 @@
   --aviso-fondo: #fdf1e0;
   --peligro: #b42318;
   --peligro-tinta: #ffffff;
+  --sucursal: #0b7268;
+  --sucursal-suave: #e3f3f0;
+  --dealers: #6a32c9;
+  --dealers-suave: #efe9fb;
   --sombra: 0 1px 2px rgba(20, 22, 27, 0.05), 0 10px 28px rgba(20, 22, 27, 0.07);
   --fuente-titulo: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
   --fuente-texto: "Barlow", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -37,6 +41,10 @@
     --aviso-fondo: #2c2213;
     --peligro: #ff8f84;
     --peligro-tinta: #0e1014;
+    --sucursal: #5fd6c4;
+    --sucursal-suave: #10302c;
+    --dealers: #c3a6ff;
+    --dealers-suave: #241b3d;
     --sombra: 0 1px 2px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
   }
@@ -57,6 +65,10 @@
   --aviso-fondo: #2c2213;
   --peligro: #ff8f84;
   --peligro-tinta: #0e1014;
+  --sucursal: #5fd6c4;
+  --sucursal-suave: #10302c;
+  --dealers: #c3a6ff;
+  --dealers-suave: #241b3d;
   --sombra: 0 1px 2px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
@@ -159,10 +171,26 @@ code {
   white-space: nowrap;
 }
 
+.barra-cifra[data-grupo="sucursal"] strong {
+  color: var(--sucursal);
+}
+
+.barra-cifra[data-grupo="dealers"] strong {
+  color: var(--dealers);
+}
+
+.barra-total {
+  padding-left: 18px;
+  border-left: 1px solid var(--linea);
+}
+
+.barra-total strong {
+  color: var(--tinta);
+}
+
 .barra-cifra strong {
   font-family: var(--fuente-codigo);
   font-weight: 500;
-  color: var(--tinta);
   font-variant-numeric: tabular-nums;
 }
 
@@ -180,6 +208,21 @@ code {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+  container-type: inline-size;
+}
+
+.ayuda-destinos {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--tinta-suave);
+}
+
+.texto-sucursal {
+  color: var(--sucursal);
+}
+
+.texto-dealers {
+  color: var(--dealers);
 }
 
 /* Filtros */
@@ -484,18 +527,22 @@ code {
   padding: 0;
 }
 
-.variante {
+.variante,
+.encabezado-columnas {
   display: grid;
   grid-template-columns: 26px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
+}
+
+.variante {
   padding: 7px 8px;
   margin-inline: -8px;
   border-radius: 6px;
 }
 
 .variante.con-cantidad {
-  background: var(--acento-suave);
+  background: var(--hoja-2);
 }
 
 .muestra {
@@ -538,53 +585,169 @@ code {
   overflow-wrap: anywhere;
 }
 
-.cantidad {
-  display: inline-flex;
-  align-items: stretch;
-  border: 1px solid var(--linea-fuerte);
-  border-radius: 6px;
+.encabezado-columnas {
+  margin-top: 10px;
+  padding-bottom: 2px;
+  font-size: 0.72rem;
+  color: var(--tinta-suave);
+}
+
+.encabezado-columnas .col-color {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.celdas {
+  display: grid;
+  grid-template-columns: repeat(var(--destinos, 5), 68px) 48px;
+  gap: 4px 6px;
+  align-items: end;
+}
+
+.col-grupo {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 2px;
+  border-bottom: 2px solid currentColor;
+  white-space: nowrap;
   overflow: hidden;
-  background: var(--hoja);
+  text-overflow: ellipsis;
 }
 
-.paso {
-  width: 34px;
-  border: 0;
-  background: var(--hoja-2);
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
+.col-grupo[data-grupo="sucursal"] {
+  color: var(--sucursal);
+}
+
+.col-grupo[data-grupo="dealers"] {
+  color: var(--dealers);
+}
+
+.col-nombre {
+  text-align: center;
+  font-weight: 600;
   color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.paso:hover {
-  background: var(--acento-suave);
-  color: var(--acento);
+.celda {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.cantidad input {
-  width: 52px;
-  border: 0;
-  border-inline: 1px solid var(--linea);
-  background: transparent;
+.celda-etiqueta {
+  display: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.celda[data-grupo="sucursal"] .celda-etiqueta {
+  color: var(--sucursal);
+}
+
+.celda[data-grupo="dealers"] .celda-etiqueta {
+  color: var(--dealers);
+}
+
+.celda input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 2px;
+  border: 1px solid var(--linea);
+  border-radius: 5px;
   text-align: center;
   font-family: var(--fuente-codigo);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-variant-numeric: tabular-nums;
-  padding: 7px 2px;
   -moz-appearance: textfield;
   appearance: textfield;
 }
 
-.cantidad input::-webkit-outer-spin-button,
-.cantidad input::-webkit-inner-spin-button {
+.celda[data-grupo="sucursal"] input {
+  background: var(--sucursal-suave);
+}
+
+.celda[data-grupo="dealers"] input {
+  background: var(--dealers-suave);
+}
+
+.celda input::-webkit-outer-spin-button,
+.celda input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.cantidad input:focus {
-  outline: none;
-  background: var(--acento-suave);
+.celda input::placeholder {
+  color: var(--linea-fuerte);
+}
+
+.celda input:focus {
+  outline: 2px solid var(--acento);
+  outline-offset: 0;
+  border-color: var(--acento);
+}
+
+.celda.con-valor[data-grupo="sucursal"] input {
+  border-color: var(--sucursal);
+  color: var(--sucursal);
+  font-weight: 500;
+}
+
+.celda.con-valor[data-grupo="dealers"] input {
+  border-color: var(--dealers);
+  color: var(--dealers);
+  font-weight: 500;
+}
+
+.celda.atenuada {
+  opacity: 0.4;
+}
+
+.celda-total output {
+  display: block;
+  padding: 7px 2px;
+  text-align: center;
+  font-family: var(--fuente-codigo);
+  font-weight: 500;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-suave);
+}
+
+.variante.con-cantidad .celda-total output {
+  color: var(--tinta);
+}
+
+/* Catálogo angosto: las columnas pasan debajo del color, cada una con su nombre. */
+@container (max-width: 720px) {
+  .encabezado-columnas {
+    display: none;
+  }
+
+  .variante {
+    grid-template-columns: 26px minmax(0, 1fr);
+    row-gap: 6px;
+  }
+
+  .variante .celdas {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(var(--destinos, 5), minmax(0, 1fr)) minmax(40px, auto);
+  }
+
+  .celda-etiqueta {
+    display: block;
+  }
 }
 
 .sin-resultados {
@@ -668,36 +831,80 @@ code {
   grid-column: 1 / -1;
 }
 
-.pedido-totales {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  margin: 0;
-  background: var(--linea);
-  border: 1px solid var(--linea);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.pedido-totales div {
-  background: var(--hoja-2);
-  padding: 8px 10px;
-}
-
-.pedido-totales dt {
-  font-size: 0.7rem;
+.subtitulo {
+  margin: 0 0 6px;
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--tinta-suave);
 }
 
-.pedido-totales dd {
-  margin: 0;
-  font-family: var(--fuente-codigo);
-  font-size: 1.25rem;
+.resumen-destinos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.resumen-destinos th {
+  text-align: left;
   font-weight: 500;
+  padding: 5px 0;
+}
+
+.resumen-destinos td {
+  text-align: right;
+  padding: 5px 0;
+  font-family: var(--fuente-codigo);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.resumen-destinos tbody tr + tr {
+  border-top: 1px solid var(--linea);
+}
+
+.resumen-destinos .fila-grupo th {
+  font-weight: 600;
+}
+
+.resumen-destinos .modalidad {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: var(--tinta-suave);
+}
+
+.resumen-destinos .fila-grupo[data-grupo="sucursal"] td,
+.resumen-destinos .fila-grupo[data-grupo="sucursal"] th {
+  color: var(--sucursal);
+}
+
+.resumen-destinos .fila-grupo[data-grupo="dealers"] td,
+.resumen-destinos .fila-grupo[data-grupo="dealers"] th {
+  color: var(--dealers);
+}
+
+.resumen-destinos .fila-dealer th {
+  padding-left: 14px;
+}
+
+.resumen-destinos tbody tr.fila-dealer + tr.fila-dealer {
+  border-top: 1px dotted var(--linea);
+}
+
+.resumen-destinos tfoot th,
+.resumen-destinos tfoot td {
+  padding-top: 8px;
+  border-top: 2px solid var(--tinta);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.ambito-nota {
+  margin: -8px 0 0;
+  font-size: 0.82rem;
+  color: var(--tinta-suave);
 }
 
 .pedido-vacio {
@@ -790,6 +997,30 @@ code {
 .linea-acciones .boton-texto {
   font-size: 0.8rem;
   padding: 0;
+}
+
+.linea-destinos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.chip-destino {
+  font-family: var(--fuente-codigo);
+  font-size: 0.74rem;
+  padding: 0 6px;
+  border-radius: 4px;
+}
+
+.chip-destino[data-grupo="sucursal"] {
+  background: var(--sucursal-suave);
+  color: var(--sucursal);
+}
+
+.chip-destino[data-grupo="dealers"] {
+  background: var(--dealers-suave);
+  color: var(--dealers);
 }
 
 .linea-cantidad {
@@ -947,15 +1178,7 @@ code {
   }
 
   .variante {
-    gap: 10px;
-  }
-
-  .paso {
-    width: 32px;
-  }
-
-  .cantidad input {
-    width: 46px;
+    column-gap: 10px;
   }
 }
 

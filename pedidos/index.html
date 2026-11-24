@@ -18,8 +18,9 @@
         <span class="marca-sub" id="marca-sub">Motocicletas y cuatriciclos</span>
       </div>
       <div class="barra-resumen" aria-live="polite">
-        <span class="barra-cifra"><strong id="barra-unidades">0</strong> unidades</span>
-        <span class="barra-cifra"><strong id="barra-renglones">0</strong> renglones</span>
+        <span class="barra-cifra" data-grupo="sucursal">Sucursal JFK <strong id="barra-sucursal">0</strong></span>
+        <span class="barra-cifra" data-grupo="dealers">Dealers <strong id="barra-dealers">0</strong></span>
+        <span class="barra-cifra barra-total">Total <strong id="barra-total">0</strong> u.</span>
       </div>
     </div>
   </header>
@@ -59,6 +60,11 @@
         </div>
       </section>
 
+      <p class="ayuda-destinos">
+        Cada color tiene una columna por destino: <strong class="texto-sucursal">Sucursal Yamaha JFK</strong> (pedido de sucursal) y
+        <strong class="texto-dealers">red de dealers</strong> (preventa: <span id="nombres-dealers"></span>). Escribí la cantidad en la columna que corresponde.
+      </p>
+
       <div id="lista-familias" class="lista-familias"></div>
 
       <div id="sin-resultados" class="sin-resultados" hidden>
@@ -90,8 +96,8 @@
             <input type="date" id="fecha-pedido" name="fecha" />
           </div>
           <div class="campo campo-ancho">
-            <label for="cliente">Cliente / concesionario</label>
-            <input type="text" id="cliente" name="cliente" placeholder="Nombre del cliente" />
+            <label for="cliente">Empresa</label>
+            <input type="text" id="cliente" name="cliente" placeholder="Nombre de la empresa" />
           </div>
           <div class="campo campo-ancho">
             <label for="solicitante">Solicitado por</label>
@@ -103,13 +109,26 @@
           </div>
         </form>
 
-        <dl class="pedido-totales">
-          <div><dt>Unidades</dt><dd id="total-unidades">0</dd></div>
-          <div><dt>Renglones</dt><dd id="total-renglones">0</dd></div>
-          <div><dt>Modelos</dt><dd id="total-familias">0</dd></div>
-        </dl>
+        <section class="bloque-resumen" aria-labelledby="titulo-resumen">
+          <h3 id="titulo-resumen" class="subtitulo">Unidades por destino</h3>
+          <table class="resumen-destinos">
+            <tbody id="resumen-destinos"></tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Total del pedido</th>
+                <td><span id="resumen-total">0</span> u.</td>
+              </tr>
+            </tfoot>
+          </table>
+        </section>
 
-        <p id="pedido-vacio" class="pedido-vacio">Todavía no hay cantidades cargadas. Abrí un modelo del catálogo y usá <strong>+</strong> o escribí la cantidad en cada color.</p>
+        <div class="campo">
+          <label for="ambito">Ver y descargar</label>
+          <select id="ambito"></select>
+        </div>
+        <p id="ambito-nota" class="ambito-nota"></p>
+
+        <p id="pedido-vacio" class="pedido-vacio">Todavía no hay cantidades cargadas. Abrí un modelo del catálogo y escribí la cantidad de cada color en la columna del destino.</p>
         <ol id="lineas-pedido" class="lineas-pedido"></ol>
 
         <div class="pedido-acciones">
@@ -117,7 +136,7 @@
           <button type="button" class="boton" id="descargar-excel">Descargar Excel</button>
           <button type="button" class="boton-texto peligro" id="nuevo-pedido">Empezar un pedido nuevo</button>
           <div id="confirmar-nuevo" class="confirmar" hidden>
-            <p>Se borran todas las cantidades y los datos del pedido.</p>
+            <p>Se borran las cantidades de todos los destinos y los datos del pedido.</p>
             <div class="confirmar-botones">
               <button type="button" class="boton peligro-lleno" id="confirmar-si">Borrar pedido</button>
               <button type="button" class="boton" id="confirmar-no">Cancelar</button>
@@ -130,7 +149,7 @@
   </div>
 
   <div class="barra-movil">
-    <span><strong id="movil-unidades">0</strong> unidades · <span id="movil-renglones">0</span> renglones</span>
+    <span>Total <strong id="movil-total">0</strong> u. · JFK <span id="movil-sucursal">0</span> · Dealers <span id="movil-dealers">0</span></span>
     <button type="button" class="boton primario" id="abrir-pedido">Ver pedido</button>
   </div>
 
